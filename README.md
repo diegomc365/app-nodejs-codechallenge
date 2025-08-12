@@ -1,54 +1,67 @@
 # App Node.js Code Challenge
 
-Este proyecto es una aplicación construida con **NestJS**, **GraphQL**, y **Prisma**, siguiendo principios de arquitectura limpia y separación por capas (`application`, `domain`, `infrastructure`).
+Este proyecto está construido con **NestJS**, **GraphQL**, **Kafka** y **Prisma**, siguiendo una arquitectura hexagonal y separando la lógica en **microservicios**.
 
 ## 🚀 Requisitos
 
-- Node.js v18+
-- npm v9+
-- Base de datos configurada (Prisma)
+- **Node.js** v18+
+- **npm** v9+
+- **Docker** y **Docker Compose** instalados
 
 ## 📦 Instalación
+
+Clonar el repositorio e instalar dependencias globales si fuera necesario:
 
 ```bash
 npm install
 ```
 
-## ▶️ Levantar el proyecto
+## ▶️ Levantar los servicios
 
-Para iniciar el proyecto en modo desarrollo:
+El proyecto cuenta con **dos microservicios**:
+
+- **transactions-service** → Gestiona las transacciones y expone API GraphQL.
+- **anti-fraud-service** → Evalúa las transacciones y decide si aprobarlas o rechazarlas.
+
+### Opción 1: Usando Docker Compose (recomendado)
+
+Este comando levantará ambos servicios junto a Kafka:
 
 ```bash
+docker-compose up --build
+```
+
+### Opción 2: Ejecutar manualmente en modo desarrollo
+
+Abrir **dos terminales**:
+
+**Terminal 1 - Transactions Service**
+
+```bash
+cd services/transactions-service
+npm install
 npm run dev
 ```
 
-Esto levantará la aplicación con **watch mode**.
-
-## 🧪 Ejecutar tests
-
-Para correr todos los tests (unitarios y e2e, excepto los ignorados):
+**Terminal 2 - Anti-Fraud Service**
 
 ```bash
-npm test
+cd services/anti-fraud-service
+npm install
+npm run dev
 ```
 
-Para ver cobertura:
+> **Nota:** Asegurarse de que Kafka esté corriendo antes de iniciar los servicios.
 
-```bash
-npm run test:cov
-```
+## 📌 Uso de GraphQL
 
-## 📂 Estructura de carpetas
+Una vez levantado el **transactions-service**, abrir el Playground de GraphQL en:
 
 ```
-src/
- ├── application/    # Casos de uso
- ├── domain/         # Entidades, enums, puertos
- ├── infraestructure # Adapters: GraphQL, Kafka, Repositorios
- └── main.ts         # Bootstrap de la app
+http://localhost:3000/graphql
 ```
 
-## 📌 Ejemplos de queries y mutations en GraphQL
+### Ejemplos de operaciones
 
 **Crear transacción**
 
@@ -66,11 +79,7 @@ mutation {
     transactionStatus {
       name
     }
-    transactionType {
-      name
-    }
     value
-    createdAt
   }
 }
 ```
@@ -88,3 +97,27 @@ query {
   }
 }
 ```
+
+## 🧪 Ejecutar Tests
+
+Cada microservicio tiene sus propias pruebas unitarias.
+
+**Transactions Service**
+
+```bash
+npm --prefix services/transactions-service test
+```
+
+**Anti-Fraud Service**
+
+```bash
+npm --prefix services/anti-fraud-service test
+```
+
+## 🔄 Flujo de prueba completo
+
+1. Levantar **transactions-service** y **anti-fraud-service**.
+2. Crear una transacción desde GraphQL.
+3. El **transactions-service** envía el evento a Kafka.
+4. El **anti-fraud-service** recibe el evento, evalúa y actualiza el estado (aprobada o rechazada).
+5. Consultar nuevamente la transacción para verificar el cambio de estado.

@@ -1,0 +1,11 @@
+{
+  "displayName": "unit",
+  "rootDir": ".",
+  "testMatch": ["<rootDir>/test/**/*.spec.ts"],
+  "transform": { "^.+\\.(t|j)s$": "ts-jest" },
+  "moduleFileExtensions": ["ts", "js", "json"],
+  "testEnvironment": "node",
+  "collectCoverageFrom": ["src/**/*.(t|j)s"],
+  "coverageDirectory": "./coverage/unit",
+  "testPathIgnorePatterns": ["<rootDir>/src/app.controller.spec.ts"]
+}

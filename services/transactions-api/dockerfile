@@ -1,0 +1,35 @@
+# ---- base builder ----
+FROM node:18-alpine AS builder
+WORKDIR /app
+
+# Install deps first (better caching)
+COPY package*.json ./
+# If workspace/monorepo, you can copy only service package.json; for now, assume isolated service
+RUN npm ci
+
+# Copy the rest
+COPY . .
+
+# Build
+RUN npm run build
+
+# ---- runtime ----
+FROM node:18-alpine AS runtime
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+# Copy node_modules and built files
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/prisma ./prisma
+
+# Expose GraphQL port
+EXPOSE 3000
+
+# Healthcheck (optional)
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD node -e "require('http').request({host:'localhost',port:3000,path:'/'},r=>process.exit(0)).on('error',()=>process.exit(1)).end()"
+
+# Run prisma deploy (no interactive prompts) and start app
+CMD sh -c "npm run prisma:generate && npm run prisma:deploy && node dist/main.js"

@@ -1,0 +1,15 @@
+{
+  "rootDir": "./",
+  "moduleFileExtensions": ["ts", "js", "json"],
+  "testMatch": ["<rootDir>/test/**/*.spec.ts"],
+  "transform": { "^.+\\.(t|j)s$": "ts-jest" },
+  "testEnvironment": "node",
+  "collectCoverageFrom": ["src/**/*.(t|j)s"],
+  "coverageDirectory": "./coverage",
+  "moduleNameMapper": {
+    "^@app/contracts(.*)$": "<rootDir>/../packages/contracts/src$1"
+  },
+  "compilerOptions": {
+    "types": ["node", "jest"]
+  }
+}
